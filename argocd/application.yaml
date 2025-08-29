@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,9 +7,51 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
     targetRevision: HEAD
-    path: guestbook
+    path: jenkins
   destination:
     server: https://kubernetes.default.svc
-    namespace: guestbook
+    namespace: devops-tools
+  syncPolicy:
+    automated:
+      prune: true 
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cc-postgres
+  namespace: devops-tools
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
+    targetRevision: HEAD
+    path: postgresql
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pg
+  syncPolicy:
+    automated:
+      prune: true 
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cc-argocd
+  namespace: devops-tools
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
+    targetRevision: HEAD
+    path: argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-tools
+  syncPolicy:
+    automated:
+      prune: true 
+      selfHeal: true

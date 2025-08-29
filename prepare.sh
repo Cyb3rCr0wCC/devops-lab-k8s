@@ -96,7 +96,6 @@ else
   echo -e "${RED}[ERROR]: Failed to deploy agrocd.${NC}"
 fi
 
-
-
-
+echo "Creating argocd application for deployment"
+cd argocd && kubectl apply -f application.yaml && cd ..
 

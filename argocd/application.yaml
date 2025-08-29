@@ -93,3 +93,21 @@ spec:
     automated:
       prune: true 
       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cc-k8s-infra
+  namespace: devops-tools
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
+    targetRevision: HEAD
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true 
+      selfHeal: true

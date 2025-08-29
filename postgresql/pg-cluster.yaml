@@ -1,0 +1,46 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+  namespace: pg
+spec:
+  description: "My example pg cluster"
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.1
+  instances: 2  # Adjust as per your infrastructure
+
+  superuserSecret:
+    name: pg-superuser
+  enableSuperuserAccess: true
+  primaryUpdateStrategy: unsupervised
+  postgresql:
+    parameters:
+      max_connections: '200'
+      shared_buffers: '256MB'
+      effective_cache_size: '768MB'
+      maintenance_work_mem: '64MB'
+      checkpoint_completion_target: '0.9'
+      wal_buffers: '7864kB'
+      default_statistics_target: '100'
+      random_page_cost: '1.1'
+      effective_io_concurrency: '200'
+      work_mem: '655kB'
+      huge_pages: 'off'
+      min_wal_size: '1GB'
+      max_wal_size: '4GB'
+
+    pg_hba:
+    - host all all 0.0.0.0/0 md5
+    - hostssl all all all md5
+
+  bootstrap:
+    initdb:
+      database: usersdb
+      owner: cc-user
+      secret:
+        name: pg-app-user
+      postInitApplicationSQL:
+        - create schema my_app
+
+  storage:
+    size: 2Gi
+    storageClass: local-storage  # Adjust based on your storage provisioner

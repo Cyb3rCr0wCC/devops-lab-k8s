@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-api
+  namespace: application
+  labels:
+    app: golang-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: golang-api
+  template:
+    metadata:
+      labels:
+        app: golang-api
+    spec:
+      containers:
+      - name: golang-api
+        image: cc-backend:latest 
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cofnigmap          # The ConfigMap this value comes from.
+                key: DB_HOST
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cofnigmap          # The ConfigMap this value comes from.
+                key: DB_PORT
+          - name: DB_USER 
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cofnigmap          # The ConfigMap this value comes from.
+                key: DB_USER
+          - name: DB_PASS
+            valueFrom:       # Use valueFrom to pull data from a source
+              secretKeyRef:  # Reference a specific key from a Secret
+                name: backend-secrets # The name of the Secret
+                key: DB_PASS
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cofnigmap          # The ConfigMap this value comes from.
+                key: DB_NAME
+        ports:
+        - containerPort: 9080
+        volumeMounts:
+        - name: backend-data
+          mountPath: /app
+      volumes:
+        - name: backend-data
+          persistentVolumeClaim:
+            claimName: backend-pvc

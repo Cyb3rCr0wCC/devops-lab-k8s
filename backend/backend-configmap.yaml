@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-cofnigmap
+  namespace: application
+data:
+  DB_PORT: "5432"
+  DB_USER: "cc-user"
+  DB_NAME: "usersdb"
+  DB_HOST: "pg-cluster-rw.pg.svc.cluster.local"

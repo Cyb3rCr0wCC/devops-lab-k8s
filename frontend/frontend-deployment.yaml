@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-app
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+    spec:
+      containers:
+        - name: frontend-app-container
+          image: cc-frontend:latest  # Use the image name and tag you built earlier
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80  # Adjust the port as needed

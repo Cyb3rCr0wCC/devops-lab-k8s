@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: application
+spec:
+  type: ClusterIP
+  selector:
+    app: golang-api
+  ports:
+    - port: 9080
+      targetPort: 9080  

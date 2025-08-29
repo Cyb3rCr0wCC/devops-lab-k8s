@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
     targetRevision: HEAD
-    path: jenkins
+    path: cicd
   destination:
     server: https://kubernetes.default.svc
     namespace: devops-tools

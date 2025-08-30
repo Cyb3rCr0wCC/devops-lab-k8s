@@ -23,7 +23,6 @@ spec:
           resources:
             limits:
               memory: "2Gi"
-              cpu: "1000m"
             requests:
               memory: "500Mi"
           ports:

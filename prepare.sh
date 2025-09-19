@@ -8,7 +8,7 @@ NC="\033[0m" # No Color / reset
 ARGOCD_SECRET=argocd-secret.yaml
 ARGOCD_DOMAIN=""
 JENKINS_DOMAIN=""
-
+INGRESS_FILE="ingress.yaml"
 while getopts "a:j:" opt; do
   case $opt in
     a)
@@ -25,15 +25,21 @@ while getopts "a:j:" opt; do
 done
 
 
-echo "[INFO]: Setting CNPG-system"
-kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.26/releases/cnpg-1.26.0.yaml
+#echo "[INFO]: Setting CNPG-system"
+#kubectl apply --server-side --force-conflicts -f \
+#  https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.27/releases/cnpg-1.27.0.yaml
+#
+#if [ $? -ne 0 ]; then
+#  echo -e "${RED}Error: cnpg system deployment failed failed!${NC}"
+#else
+#  echo -e "${GREEN}Success: cpng-system installition successfully completed!${NC}"
+#fi
 
-if [ $? -ne 0 ]; then
-  echo -e "${RED}Error: cnpg system deployment failed failed!${NC}"
-else
-  echo -e "${GREEN}Success: cpng-system installition successfully completed!${NC}"
-fi
+echo "[INFO]: Preparing k8s infrastructure"
+kubectl apply -f k8s
 
+echo "[INFO]: Installing nginx ingress controller"
+helm install my-release oci://ghcr.io/nginx/charts/nginx-ingress --version 2.3.0 --namespace ingress-nginx
 
 echo "[INFO]: Generating self-signed cert for argocd"
 cd argocd && bash certgen.sh
@@ -55,6 +61,7 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}[INFO]: tls.crt in $ARGOCD_SECRET successfully updated.${NC}"
 else
     echo
+fi
 TLS_KEY_BASE64=$(cat tls.key | base64 -w0)
 
 # Replace tls.crt
@@ -75,12 +82,10 @@ fi
 
 
 # Replace the host under rules
-sed -i "s|\(\s*host:\s*\).*|\1$ARGOCD_DOMAIN|" "$INGRESS_FILE"
-
+sed -i 's/^\(\s*-\s*host:\s*\).*/\1'$ARGOCD_DOMAIN'/' $INGRESS_FILE
 # Replace the host under tls
-sed -i "s|\(\s*-\s*.*\).*|\1$ARGOCD_DOMAIN|" "$INGRESS_FILE"
+sed -i 's/^\(\s*-\s*hosts: \s*\).*/\1'$ARGOCD_DOMAIN'/' $INGRESS_FILE
 
-# Verify changes
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}[INFO]: Updated ingress hosts to $ARGOCD_DOMAIN in $INGRESS_FILE.${NC}"
 else
@@ -88,7 +93,7 @@ else
 fi
 
 echo "[INFO]: Deploying argocd"
-cd ../ && kubectl apply -f argocd/
+cd ../ && kubectl apply -n devops-tools -f argocd/
 
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}[INFO]: Argocd deployed successfully.${NC}"
@@ -99,3 +104,8 @@ fi
 echo "Creating argocd application for deployment"
 cd argocd && kubectl apply -f application.yaml && cd ..
 
+if [ $? -eq 0 ]; then
+  echo -e "${GREEN}[INFO]: Argocd application deployed successfully.${NC}"
+else
+  echo -e "${RED}[ERROR]: Failed to deploy agrocd application.${NC}"
+fi

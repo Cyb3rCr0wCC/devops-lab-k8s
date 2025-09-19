@@ -25,7 +25,6 @@ spec:
                 name: "backend-service"
                 port:
                   number: 9080
-                
           # Frontend route
           - path: /
             pathType: Prefix

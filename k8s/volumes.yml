@@ -1,0 +1,107 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage 
+provisioner: kubernetes.io/no-provisioner 
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-local-pv-1
+spec:
+  capacity:
+    storage: 2Gi 
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce 
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: local-storage
+  local:
+    path: /home/docker/pg-data-1 
+  nodeAffinity: 
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-local-pv-2
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /home/docker/pg-data-2
+  nodeAffinity: 
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: local-storage
+  claimRef:
+    name: jenkins-pv-claim
+    namespace: devops-tools
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /home/docker/jenkins
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backend-pv
+  labels:
+    type: local
+spec:
+  storageClassName: local-storage
+  claimRef:
+    name: backend-pvc
+    namespace: application
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: "/home/docker/backend-data"
+  nodeAffinity: 
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+

@@ -40,25 +40,6 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cc-argocd
-  namespace: devops-tools
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/Cyb3rCr0wCC/devops-lab-k8s
-    targetRevision: HEAD
-    path: argocd
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: devops-tools
-  syncPolicy:
-    automated:
-      prune: true 
-      selfHeal: true
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
   name: cc-k8s-infra
   namespace: devops-tools
 spec:

@@ -28,7 +28,7 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - minikube
+                - ubuntu
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -51,7 +51,7 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - minikube
+                - ubuntu
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -77,7 +77,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - minikube
+          - ubuntu
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -103,5 +103,5 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - minikube
+                - ubuntu
 

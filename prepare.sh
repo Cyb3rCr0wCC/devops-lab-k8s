@@ -29,7 +29,7 @@ done
 echo "[INFO]: Installing cnpg-system"
 kubectl apply -f cnpg/
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[INFO]: Cnpg-system successfully deployed"
+    echo -e "${GREEN}[INFO]: Cnpg-system successfully deployed ${NC}"
 else
     echo -e "${RED}[ERROR]: Failed to Deploy cnpg system ${NC}"
 fi
@@ -37,33 +37,70 @@ fi
 echo "[INFO]: Installing metallb-system"
 kubectl apply -f metallb-native.yaml
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[INFO]: Metallb-system successfully deployed"
+    echo -e "${GREEN}[INFO]: Metallb-system successfully deployed ${NC}"
 else
     echo -e "${RED}[ERROR]: Failed to Deploy metallb system ${NC}"
+    exit 1
+fi
+
+# ✅ Wait until all pods in metallb-system are Ready
+echo "[INFO]: Waiting for metallb-system pods to be ready..."
+kubectl wait --namespace metallb-system \
+  --for=condition=Ready pod \
+  --all \
+  --timeout=10m
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: All metallb-system pods are ready${NC}"
+else
+    echo -e "${RED}[ERROR]: metallb-system pods did not become ready in time${NC}"
+    exit 1
 fi
 
 echo "[INFO]: Preparing volumes"
 kubectl apply -f volumes.yml
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[INFO]: Volumes successfully created"
+    echo -e "${GREEN}[INFO]: Volumes successfully created${NC}"
 else
     echo -e "${RED}[ERROR]: Failed to create volumes ${NC}"
+    exit 1
 fi
 
 echo "[INFO]: Preparing k8s resources"
+kubectl apply -f k8s/namespace.yml
+
+echo "[INFO]: Applying all k8s manifests"
 kubectl apply -f k8s/
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[INFO]: Resources created successfully."
+    echo -e "${GREEN}[INFO]: Resources created successfully. ${NC}"
 else
     echo -e "${RED}[ERROR]: Failed to create resources ${NC}"
 fi
 
 echo "[INFO]: Installing nginx ingress controller"
-helm install nginx-release oci://ghcr.io/nginx/charts/nginx-ingress --version 2.3.0 --namespace ingress-nginx
+helm install nginx-release oci://ghcr.io/nginx/charts/nginx-ingress \
+  --version 2.3.0 \
+  --namespace ingress-nginx \
+  --create-namespace
+
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[INFO]: Nginx ingress controller successfully deployed."
+    echo -e "${GREEN}[INFO]: Nginx ingress controller successfully deployed.${NC}"
 else
     echo -e "${RED}[ERROR]: Failed to deploy nginx ingress controller ${NC}"
+    exit 1
+fi
+
+# ✅ Wait for NGINX ingress controller pods to be Ready
+echo "[INFO]: Waiting for NGINX ingress controller pods to be ready..."
+kubectl wait --namespace ingress-nginx \
+  --for=condition=Ready pod \
+  --all \
+  --timeout=10m
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: All NGINX ingress controller pods are ready.${NC}"
+else
+    echo -e "${RED}[ERROR]: NGINX ingress controller pods did not become ready in time.${NC}"
+    exit 1
 fi
 
 echo "[INFO]: Generating self-signed cert for argocd"
@@ -118,19 +155,33 @@ else
 fi
 
 echo "[INFO]: Deploying argocd"
-cd ../ && kubectl apply -n devops-tools -f argocd/deployment.yml && kubectl apply -n devops-tools -f argocd/
+
+cd ../
+kubectl apply -n devops-tools -f argocd/deployment.yaml
+
+# ✅ Wait until all ArgoCD pods are Ready
+echo "[INFO]: Waiting for ArgoCD pods to be ready..."
+kubectl wait --namespace devops-tools \
+  --for=condition=Ready pod \
+  --all \
+  --timeout=10m
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: All ArgoCD pods are ready.${NC}"
+else
+    echo -e "${RED}[ERROR]: ArgoCD pods did not become ready in time.${NC}"
+    echo "[INFO]: Showing pod statuses for debugging:"
+    kubectl get pods -n devops-tools
+    exit 1
+fi
+
+kubectl apply -n devops-tools -f argocd/
+kubectl rollout restart deployment argocd-server -n devops-tools
+kubectl apply -n devops-tools -f argocd/configmap.yml
+kubectl rollout restart deployment argocd-server -n devops-tools
 
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}[INFO]: Argocd deployed successfully.${NC}"
 else
   echo -e "${RED}[ERROR]: Failed to deploy agrocd.${NC}"
-fi
-
-echo "Creating argocd application for deployment"
-cd argocd && kubectl apply -f application.yaml && cd ..
-
-if [ $? -eq 0 ]; then
-  echo -e "${GREEN}[INFO]: Argocd application deployed successfully.${NC}"
-else
-  echo -e "${RED}[ERROR]: Failed to deploy agrocd application.${NC}"
 fi

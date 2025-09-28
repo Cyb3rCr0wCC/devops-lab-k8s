@@ -5,10 +5,10 @@ metadata:
   namespace: devops-tools
   annotations:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/service-upstream: "true"
 spec:
-  ingressClassName: "nginx"
+  ingressClassName: nginx
   rules:
   - http:
       paths:
@@ -18,9 +18,9 @@ spec:
           service:
             name: argocd-server
             port: 
-              name: https
+              name: http
     host: argocd.cybercrow.com
   tls:
   - hosts:
     - argocd.cybercrow.com
-    secretName: argocd-secret
+    secretName: argocd-ingress-secret

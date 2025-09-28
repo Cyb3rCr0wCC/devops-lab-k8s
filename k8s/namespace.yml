@@ -18,3 +18,10 @@ metadata:
   name: pg
   labels:
     name: pg
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  labels:
+    name: ingress-nginx

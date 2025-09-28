@@ -25,21 +25,46 @@ while getopts "a:j:" opt; do
 done
 
 
-#echo "[INFO]: Setting CNPG-system"
-#kubectl apply --server-side --force-conflicts -f \
-#  https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.27/releases/cnpg-1.27.0.yaml
-#
-#if [ $? -ne 0 ]; then
-#  echo -e "${RED}Error: cnpg system deployment failed failed!${NC}"
-#else
-#  echo -e "${GREEN}Success: cpng-system installition successfully completed!${NC}"
-#fi
 
-echo "[INFO]: Preparing k8s infrastructure"
-kubectl apply -f k8s
+echo "[INFO]: Installing cnpg-system"
+kubectl apply -f cnpg/
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: Cnpg-system successfully deployed"
+else
+    echo -e "${RED}[ERROR]: Failed to Deploy cnpg system ${NC}"
+fi
+
+echo "[INFO]: Installing metallb-system"
+kubectl apply -f metallb-native.yaml
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: Metallb-system successfully deployed"
+else
+    echo -e "${RED}[ERROR]: Failed to Deploy metallb system ${NC}"
+fi
+
+echo "[INFO]: Preparing volumes"
+kubectl apply -f volumes.yml
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: Volumes successfully created"
+else
+    echo -e "${RED}[ERROR]: Failed to create volumes ${NC}"
+fi
+
+echo "[INFO]: Preparing k8s resources"
+kubectl apply -f k8s/
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: Resources created successfully."
+else
+    echo -e "${RED}[ERROR]: Failed to create resources ${NC}"
+fi
 
 echo "[INFO]: Installing nginx ingress controller"
-helm install my-release oci://ghcr.io/nginx/charts/nginx-ingress --version 2.3.0 --namespace ingress-nginx
+helm install nginx-release oci://ghcr.io/nginx/charts/nginx-ingress --version 2.3.0 --namespace ingress-nginx
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}[INFO]: Nginx ingress controller successfully deployed."
+else
+    echo -e "${RED}[ERROR]: Failed to deploy nginx ingress controller ${NC}"
+fi
 
 echo "[INFO]: Generating self-signed cert for argocd"
 cd argocd && bash certgen.sh
@@ -93,7 +118,7 @@ else
 fi
 
 echo "[INFO]: Deploying argocd"
-cd ../ && kubectl apply -n devops-tools -f argocd/
+cd ../ && kubectl apply -n devops-tools -f argocd/deployment.yml && kubectl apply -n devops-tools -f argocd/
 
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}[INFO]: Argocd deployed successfully.${NC}"

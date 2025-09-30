@@ -19,7 +19,7 @@ spec:
       serviceAccountName: jenkins-admin
       containers:
         - name: jenkins
-          image: jenkins/jenkins:lts
+          image: public.ecr.aws/bitnami/jenkins:latest
           resources:
             limits:
               memory: "2Gi"

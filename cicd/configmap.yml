@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-cf
+  namespace: devops-tools
+data:
+  image: mirror.gcr.io/jenkins:latest

@@ -19,11 +19,7 @@ spec:
       serviceAccountName: jenkins-admin
       containers:
         - name: jenkins
-          image: 
-            valueFrom:
-            configMapKeyRef:
-              name: jenkins-cf
-              key: image
+          image: public.ecr.aws/bitnami/jenkins:latest
           resources:
             limits:
               memory: "2Gi"

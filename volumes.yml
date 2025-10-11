@@ -20,7 +20,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain 
   storageClassName: local-storage
   local:
-    path: /home/docker/pg-data-1 
+    path: /data/pg-data-1 
   nodeAffinity: 
     required:
       nodeSelectorTerms:
@@ -43,7 +43,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /home/docker/pg-data-2
+    path: /data/pg-data-2
   nodeAffinity: 
     required:
       nodeSelectorTerms:
@@ -69,7 +69,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   local:
-    path: /home/docker/jenkins
+    path: /data/jenkins
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -95,7 +95,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   local:
-    path: "/home/docker/backend-data"
+    path: /data/backend
   nodeAffinity: 
     required:
       nodeSelectorTerms:
